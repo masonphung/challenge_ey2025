@@ -4,7 +4,7 @@
 </a>
 
 ## Project Objective
-The objective is to create a machine learning model that predicts the Urban Heat Island (UHI) effect, which highlights temperature variations between urban and rural areas. The model will be developed using data extracted from European Sentinel-2 optical satellite imagery, NASA Landsat optical satellite imagery, and the Building Footprints dataset.
+The objective is to create a machine learning model that predicts the Urban Heat Island (UHI) effect, which highlights temperature variations in an urban area. The model will be developed using data extracted from European Sentinel-2 optical satellite imagery, NASA Landsat optical satellite imagery, and the Building Footprints dataset.
 
 ## Project Organization
 
@@ -14,7 +14,7 @@ The objective is to create a machine learning model that predicts the Urban Heat
 ├── README.md          <- The top-level README file for project overview and instructions
 ├── data
 │   ├── interim        <- Intermediate data after initial transformations.
-│   ├── processed      <- Final datasets prepared for modeling.
+│   ├── processed      <- Final datasets prepared for modelling.
 │   ├── raw            <- Original, unprocessed data.
 │   └── test           <- Final submission results or test outputs.
 │
@@ -32,9 +32,9 @@ The objective is to create a machine learning model that predicts the Urban Heat
     │
     ├── __init__.py             <- Makes src a Python module
     │
-    ├── data_manipulation.py     <- Important class and functions for for extracting satellite band values and calculating vegetation indices. 
+    ├── data_manipulation.py     <- Important class and functions for extracting satellite band values and calculating vegetation indices. 
     │
-    ├── data_processing.py       <- Important class and functions for for cleaning, transforming, and preparing data for analysis.
+    ├── data_processing.py       <- Important class and functions for cleaning, transforming, and preparing data for analysis.
     │
     ├── kml.py             <- Building footprints file
 ├── pyproject.toml     <- Project configuration file with package metadata for 
