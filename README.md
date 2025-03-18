@@ -1,10 +1,9 @@
 # The 2025 EY Open Science AI and Data Challenge: Cooling Urban Heat Islands 
-Team: Vietnamese
 <a target="_blank" href="https://cookiecutter-data-science.drivendata.org/">
     <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
 </a>
 
-## Project Objective: 
+## Project Objective
 The objective is to create a machine learning model that predicts the Urban Heat Island (UHI) effect, which highlights temperature variations between urban and rural areas. The model will be developed using data extracted from European Sentinel-2 optical satellite imagery, NASA Landsat optical satellite imagery, and the Building Footprints dataset.
 
 ## Project Organization
