@@ -1,61 +1,46 @@
-# challenge_ey2025_masonphung
-
+# The 2025 EY Open Science AI and Data Challenge: Cooling Urban Heat Islands 
+Team: Vietnamese
 <a target="_blank" href="https://cookiecutter-data-science.drivendata.org/">
     <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
 </a>
 
-A short description of the project.
+## Project Objective: 
+The objective is to create a machine learning model that predicts the Urban Heat Island (UHI) effect, which highlights temperature variations between urban and rural areas. The model will be developed using data extracted from European Sentinel-2 optical satellite imagery, NASA Landsat optical satellite imagery, and the Building Footprints dataset.
 
 ## Project Organization
 
 ```
 ├── LICENSE            <- Open-source license if one is chosen
 ├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
-├── README.md          <- The top-level README for developers using this project.
+├── README.md          <- The top-level README file for project overview and instructions
 ├── data
-│   ├── external       <- Data from third party sources.
-│   ├── interim        <- Intermediate data that has been transformed.
-│   ├── processed      <- The final, canonical data sets for modeling.
-│   └── raw            <- The original, immutable data dump.
+│   ├── interim        <- Intermediate data after initial transformations.
+│   ├── processed      <- Final datasets prepared for modeling.
+│   ├── raw            <- Original, unprocessed data.
+│   └── test           <- Final submission results or test outputs.
 │
-├── docs               <- A default mkdocs project; see www.mkdocs.org for details
+├── docs               <- Project documentation, references, or important papers
 │
-├── models             <- Trained and serialized models, model predictions, or model summaries
+├── models             <- Trained models, model predictions, or model summaries
 │
-├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-│                         the creator's initials, and a short `-` delimited description, e.g.
-│                         `1.0-jqp-initial-data-exploration`.
-│
-├── pyproject.toml     <- Project configuration file with package metadata for 
-│                         src and configuration for tools like black
+├── notebooks          <- Jupyter notebooks documenting the model development process
 │
 ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
 │
-├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-│   └── figures        <- Generated graphics and figures to be used in reporting
-│
-├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-│                         generated with `pip freeze > requirements.txt`
-│
-├── setup.cfg          <- Configuration file for flake8
+├── report            <- a document to describe the model development approach
 │
 └── src   <- Source code for use in this project.
     │
     ├── __init__.py             <- Makes src a Python module
     │
-    ├── config.py               <- Store useful variables and configuration
+    ├── data_manipulation.py     <- Important class and functions for for extracting satellite band values and calculating vegetation indices. 
     │
-    ├── dataset.py              <- Scripts to download or generate data
+    ├── data_processing.py       <- Important class and functions for for cleaning, transforming, and preparing data for analysis.
     │
-    ├── features.py             <- Code to create features for modeling
-    │
-    ├── modeling                
-    │   ├── __init__.py 
-    │   ├── predict.py          <- Code to run model inference with trained models          
-    │   └── train.py            <- Code to train models
-    │
-    └── plots.py                <- Code to create visualizations
-```
-
---------
-
+    ├── kml.py             <- Building footprints file
+├── pyproject.toml     <- Project configuration file with package metadata for 
+│                         src and configuration for tools like black
+├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
+│                         generated with `pip freeze > requirements.txt`
+├── setup.cfg          <- Configuration file for flake8
+├── submission.csv          <- Submission file for assessment
