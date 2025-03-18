@@ -4,7 +4,7 @@
 </a>
 
 ## Project Objective
-The objective is to create a machine learning model that predicts the Urban Heat Island (UHI) effect, which highlights temperature variations in an urban area. The model will be developed using data extracted from European Sentinel-2 optical satellite imagery, NASA Landsat optical satellite imagery, and the Building Footprints dataset.
+The objective is to create a machine learning model that predicts the Urban Heat Island (UHI) effect, which represents a range of temperatures varying across different locations in urban areas. The model will be developed using data extracted from European Sentinel-2 optical satellite imagery, NASA Landsat optical satellite imagery, and the Building Footprints dataset.
 
 ## Project Organization
 
