@@ -1,19 +1,12 @@
 import pystac_client
 import planetary_computer
-import xarray as xr
 from odc.stac import stac_load
-from pyproj import Proj, Transformer, CRS
 import geopandas as gpd
-from tqdm import tqdm
 import rasterio
 from rasterio.windows import Window
-from rasterio.enums import Resampling
-import rioxarray as rxr
+from shapely.geometry import Point
 import pandas as pd
 import numpy as np
-from tqdm import tqdm
-from scipy.ndimage import gaussian_filter
-from joblib import Parallel, delayed
 
 
 class SatelliteDataExtractor:
@@ -79,7 +72,7 @@ class SatelliteDataExtractor:
         print("Data loaded!")
         return data
 
-    def process_data(self, dataset_type, filename, bands, scene):
+    def process_data(self, dataset_type, filename, bands, scene=None):
         """
         Processes and saves satellite data based on dataset type.
 
@@ -113,7 +106,7 @@ class SatelliteDataExtractor:
             )
             print(f"Using Bounds: {self.bounds}, Time Window: {self.time_window}")
             print("Scaling landsat data...")
-            # scale and convert temperature to celcius
+            # Scale and convert temperature to celcius
             scale = 0.00341802 
             offset = 149.0 
             kelvin_celsius = 273.15
@@ -163,141 +156,120 @@ class SatelliteDataExtractor:
         print(f"Data saved: {filename}\n")
 
 class SatelliteDataManipulator:
-    def __init__(self, sen2_tiff_path, land_tiff_path, ground_df_path, band_mappings, buffer_distances=[0]):
-        self.sen2_tiff_path = sen2_tiff_path
-        self.land_tiff_path = land_tiff_path
+    def __init__(self, sentinel_tiff, landsat_tiff, ground_df_path, sentinel_bands, landsat_bands, buffer_sizes=[0]):
+        self.sentinel_tiff = sentinel_tiff
+        self.landsat_tiff = landsat_tiff
         self.ground_df_path = ground_df_path
-        self.band_mappings = band_mappings
-        self.buffer_distances = buffer_distances
-
-        # Load the GeoTIFF data
-        print("Loading GeoTIFF data...")
-        self.tiff_data = {
-            "sentinel": rxr.open_rasterio(self.sen2_tiff_path),
-            "landsat": rxr.open_rasterio(self.land_tiff_path)
-        }
-        self.tiff_crs = self.tiff_data["sentinel"].rio.crs  # Assume both datasets share the same CRS
-        print("Data loaded!")
-
-        # Load ground truth data
-        print("Loading ground truth data...")
-        self.ground_df = pd.read_csv(self.ground_df_path)
-        self.latitudes = self.ground_df['Latitude'].values
-        self.longitudes = self.ground_df['Longitude'].values
-        print("Data loaded!")
-
-        # Convert lat/lon to the TIFF's CRS
-        self.transformer = Transformer.from_crs("EPSG:4326", self.tiff_crs, always_xy=True)
-        self.transformed_coords = [self.transformer.transform(lon, lat) for lat, lon in zip(self.latitudes, self.longitudes)]
-
-    def map_satellite_data(self):
-        """
-        """
-        band_values = {f"{band_name}": [] for band_name in self.band_mappings.keys()}
+        self.sentinel_bands = sentinel_bands
+        self.landsat_bands = landsat_bands
+        self.buffer_sizes = buffer_sizes
         
-        # Extract pixel values
-        for (x, y) in tqdm(self.transformed_coords, total=len(self.transformed_coords), desc="Mapping values"):
-            for band_name, (dataset_key, band_num) in self.band_mappings.items():
-                dataset = self.tiff_data[dataset_key]  # Select correct dataset
-                value = dataset.sel(x=x, y=y, band=band_num, method="nearest").values
-                band_values[f"{band_name}"].append(value)
-        
-        return pd.DataFrame(band_values)
-
-    def map_satellite_data1(self):
+    def extract_band_values(self):
         """
-        Extracts band values at the given coordinates with optional focal buffer processing.
-        """
-        def _compute_focal_mean(self, dataset, x, y, band_num, buffer_distance):
-            """
-            Computes the focal mean of a band within a buffer distance with boundary checks.
-
-            Parameters:
-            - dataset: xarray dataset for Sentinel/Landsat
-            - x, y: coordinates in raster CRS
-            - band_num: band number to extract
-            - buffer_distance: radius (in meters) for the buffer
-
-            Returns:
-            - Mean value of the band within the buffer
-            """
-            resolution = abs(dataset.rio.resolution()[0])  # Pixel resolution in meters
-            buffer_pixels = int(buffer_distance / resolution)  # Convert buffer to pixel size
-
-            # Calculate the boundaries of the buffer window
-            x_min = x - buffer_pixels
-            x_max = x + buffer_pixels
-            y_min = y - buffer_pixels
-            y_max = y + buffer_pixels
-
-            # Ensure the window stays within the bounds of the raster
-            x_min = max(x_min, dataset.x.min())
-            x_max = min(x_max, dataset.x.max())
-            y_min = max(y_min, dataset.y.min())
-            y_max = min(y_max, dataset.y.max())
-
-            # Debugging prints to check if the window selection is correct
-            print(f"Buffer={buffer_distance}m | Transformed coords (x, y): ({x}, {y})")
-            print(f"Window coordinates: x_min={x_min}, x_max={x_max}, y_min={y_min}, y_max={y_max}")
-
-            # Extract a square window around (x, y) with the buffer size
-            window = dataset.sel(x=slice(x_min, x_max),
-                                y=slice(y_min, y_max),
-                                band=band_num,
-                                method="nearest")
-
-            # Handle case where the window may not contain any valid data
-            if window.isnull().all():
-                print(f"Warning: No valid data found in the buffer window for coords ({x}, {y}) with buffer {buffer_distance}m.")
-                return float('nan')  # or another placeholder for missing values
-
-            return float(window.mean().values)  # Compute mean and convert to float
+        Extract Sentinel-2 & Landsat band values at given locations, with optional focal buffers.
         
-        # Initialize dictionary for extracted values
-        band_values = {f"{band_name}_buffer{buffer}m": [] for band_name in self.band_mappings.keys() for buffer in self.buffer_distances}
+        Parameters:
+        - sentinel_tiff (str): Path to Sentinel-2 GeoTIFF.
+        - landsat_tiff (str): Path to Landsat GeoTIFF.
+        - ground_df_path (str): Path to CSV containing Latitude, Longitude.
+        - sentinel_bands (list): List of Sentinel-2 bands to extract (e.g., ["B02", "B03"]).
+        - landsat_bands (list): List of Landsat bands to extract (e.g., ["lwir11"]).
+        - buffer_sizes (list): List of buffer sizes in meters (e.g., [0, 50, 100]).
 
-        # Extract pixel values
-        for (x, y) in tqdm(self.transformed_coords, total=len(self.transformed_coords), desc="Mapping values"):
-            for band_name, (dataset_key, band_num) in self.band_mappings.items():
-                dataset = self.tiff_data[dataset_key]  # Select correct dataset
+        Returns:
+        - pd.DataFrame: Dataframe with extracted band values (with buffer names if applicable).
+        """
+        print(f"Chosen sentinel bands: {self.sentinel_bands}")
+        print(f"Chosen landsat bands: {self.landsat_bands}")
+        print(f"Buffer sizes: {self.buffer_sizes}")
+        # Band-to-index mapping based on the input sentinel bands
+        sentinel_band_map = {band: idx+1 for idx, band in enumerate(self.sentinel_bands)}
+        
+        # For Landsat, assuming one band is always 'lwir11'
+        landsat_band_map = {band: 1 for band in self.landsat_bands}
 
-                for buffer in self.buffer_distances:
-                    if buffer == 0:  # No buffer, extract single pixel value
-                        try:
-                            value = dataset.sel(x=x, y=y, band=band_num, method="nearest").values
-                        except KeyError:
-                            print(f"Band {band_num} not found in {dataset}")
-                        band_values[f"{band_name}_buffer{buffer}m"].append(value)
-                    else:  # Apply focal mean within the buffer
-                        value = _compute_focal_mean(dataset, x, y, band_num, buffer)
-                        band_values[f"{band_name}_buffer{buffer}m"].append(value)
+        # Read ground data
+        ground_df = pd.read_csv(self.ground_df_path)
+        geometry = [Point(xy) for xy in zip(ground_df["Longitude"], ground_df["Latitude"])]
+        ground_gdf = gpd.GeoDataFrame(ground_df, geometry=geometry, crs="EPSG:4326")
 
-        # Convert extracted values to DataFrame
-        extracted_df = pd.DataFrame(band_values)
+        # Function to extract value at a point with optional buffer
+        def extract_value(src, band_index, x, y, buffer):
+            row, col = src.index(x, y)
+            if buffer == 0:
+                return src.read(band_index)[row, col]
+            else:
+                res = src.res[0]  # Assume square pixels, get resolution in degrees
+                buffer_pixels = int(buffer / (res * 111320))  # Convert meters to pixel units
+                window = Window(col - buffer_pixels, row - buffer_pixels, 2 * buffer_pixels + 1, 2 * buffer_pixels + 1)
+                data = src.read(band_index, window=window)
+                return np.nanmean(data)  # Return mean value within buffer
 
-        return extracted_df
+        # Extract values
+        extracted_data = []
+        
+        
+        print("Extracting band values...")
+        for _, row in ground_gdf.iterrows():
+            x, y = row["Longitude"], row["Latitude"]
+            extracted_row = {}
+
+            with rasterio.open(self.sentinel_tiff) as sen_src, rasterio.open(self.landsat_tiff) as land_src:
+                for band in self.sentinel_bands:
+                    band_index = sentinel_band_map[band]
+                    for buffer in self.buffer_sizes:
+                        feature_name = f"{band}" if buffer == 0 else f"{band}_buffer{buffer}"
+                        extracted_row[feature_name] = extract_value(sen_src, band_index, x, y, buffer)
+
+                for band in self.landsat_bands:
+                    band_index = landsat_band_map[band]
+                    for buffer in self.buffer_sizes:
+                        feature_name = f"{band}" if buffer == 0 else f"{band}_buffer{buffer}"
+                        extracted_row[feature_name] = extract_value(land_src, band_index, x, y, buffer)
+
+            extracted_data.append(extracted_row)
+
+        return pd.DataFrame(extracted_data)
 
     def calc_band_indices(self, data):
         """
-        Compute NDVI, NDBI, NDWI, EVI, SAVI, and NBAI for all buffer sizes.
+        Calculate the following indices: NDVI, NDBI, NDWI, EVI, SAVI, NBAI from the extracted satellite data:
+        Returns:
+        data (DataFrame): The satellite data with newly calculated band combination indices
         """
-        # Initialize dictionary for indices
-        indices = {
-            "NDVI": (data["B08"] - data["B04"]) / (data["B08"] + data["B04"]),
-            "NDBI": (data["B11"] - data["B08"]) / (data["B11"] + data["B08"]),
-            "NDWI": (data["B03"] - data["B08"]) / (data["B03"] + data["B08"]),
-            "EVI": 2.5 * (data["B08"] - data["B04"]) / (data["B08"] + 6 * data["B04"] - 7.5 * data["B02"] + 1),
-            "SAVI": ((data["B08"] - data["B04"]) / (data["B08"] + data["B04"] + 0.5)).clip(lower=1e-8) * 1.5,
-            "NBAI": ((data["B11"] + data["B12"]) - data["B08"]) / ((data["B11"] + data["B12"]) + data["B08"])
-        }
+        # Define the indices calculations
+        indices = {}
+        for each in self.buffer_sizes:
+            if each == 0:
+                print("Calculating combination indices without buffer...")
+                indices.update(
+                    {
+                        "NDVI": (data["B08"] - data["B04"]) / (data["B08"] + data["B04"]),
+                        "NDBI": (data["B11"].astype("float64") - data["B08"].astype("float64")) / (data["B11"].astype("float64") + data["B08"].astype("float64")),
+                        "NDWI": (data["B03"] - data["B08"]) / (data["B03"] + data["B08"]),
+                        "MNDWI": (data["B03"] - data["B11"]) / (data["B03"] + data["B11"]),
+                        "EVI": 2.5 * (data["B08"] - data["B04"]) / (data["B08"] + 6 * data["B04"] - 7.5 * data["B02"] + 1),
+                        "SAVI": ((data["B08"] - data["B04"]) / (data["B08"] + data["B04"] + 0.5)) * 1.5,
+                        "NBAI": ((data["B11"] + data["B12"]) - data["B08"]) / ((data["B11"] + data["B12"]) + data["B08"])
+                    }
+                )
+            else:
+                print(f"Calculating combination indices with buffer size of {each}m...")
+                indices.update(
+                    {
+                        f"NDVI_buffer{each}": (data[f"B08_buffer{each}"] - data[f"B04_buffer{each}"]) / (data[f"B08_buffer{each}"] + data[f"B04_buffer{each}"]),
+                        f"NDBI_buffer{each}": (data[f"B11_buffer{each}"] - data[f"B08_buffer{each}"]) / (data[f"B11_buffer{each}"] + data[f"B08_buffer{each}"]),
+                        f"NDWI_buffer{each}": (data[f"B03_buffer{each}"] - data[f"B08_buffer{each}"]) / (data[f"B03_buffer{each}"] + data[f"B08_buffer{each}"]),
+                        f"MNDWI_buffer{each}": (data[f"B03_buffer{each}"] - data[f"B11_buffer{each}"]) / (data[f"B03_buffer{each}"] + data[f"B11_buffer{each}"]),
+                        f"EVI_buffer{each}": 2.5 * (data[f"B08_buffer{each}"] - data[f"B04_buffer{each}"]) / (data[f"B08_buffer{each}"] + 6 * data[f"B04_buffer{each}"] - 7.5 * data[f"B02_buffer{each}"] + 1),
+                        f"SAVI_buffer{each}": ((data[f"B08_buffer{each}"] - data[f"B04_buffer{each}"]) / (data[f"B08_buffer{each}"] + data[f"B04_buffer{each}"] + 0.5)) * 1.5,
+                        f"NBAI_buffer{each}": ((data[f"B11_buffer{each}"] + data[f"B12_buffer{each}"]) - data[f"B08_buffer{each}"]) / ((data[f"B11_buffer{each}"] + data[f"B12_buffer{each}"]) + data[f"B08_buffer{each}"])
+                    }
+                )
 
-        # Loop through all buffer sizes and apply the indices calculation
-        for buffer in self.buffer_distances:
-            for index_name, index_value in indices.items():
-                # Add buffer size information to column names
-                column_name = f"{index_name}_buffer{buffer}m"
-                data[column_name] = index_value.replace([np.inf, -np.inf], np.nan)
-
+        # Compute and clean each index dynamically
+        for index_name, index_value in indices.items():
+            data[index_name] = index_value.replace([np.inf, -np.inf], np.nan).astype("float64")
         return data
     
 class WeatherDataProcessor:
@@ -357,25 +329,4 @@ class WeatherDataProcessor:
         uhi_data.head()    
         # Return the final df
         return uhi_data
-    
-    
-def drop_duplicate(df):
-    """
-    Drop duplicate rows in a DataFrame.
-    
-    Parameters:
-    df (pd.DataFrame): Input DataFrame.
-    
-    Returns:
-    pd.DataFrame: DataFrame with duplicates removed.
-    """
-    # Remove duplicate rows from the DataFrame based on specified columns and keep the first occurrence
-    columns_to_check = df.drop(columns=['Longitude', 'Latitude', 'datetime', 'UHI Index']).columns
-    for col in columns_to_check:
-        # Check if the value is a numpy array and has more than one dimension
-        df[col] = df[col].apply(lambda x: tuple(x) if isinstance(x, np.ndarray) and x.ndim > 0 else x)
 
-    # Now remove duplicates
-    df = df.drop_duplicates(subset=columns_to_check, keep='first')
-    df.describe()
-    return df
