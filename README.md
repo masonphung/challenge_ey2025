@@ -1,4 +1,4 @@
-# EY Open AI & Data Science Competition 2025
+# The 2025 EY Open Science AI & Data Challenge
 <a target="_blank" href="https://challenge.ey.com/2025">
     <img src="docs/marketing-2025-img.jpg" />
 </a>
@@ -6,21 +6,30 @@
 
 --------
 ## **Cooling Urban Heat Islands** -  Team Vietnamese
+
 **Mason Phung**, Macquarie University, Master of Data Science
+
 **Claire Dinh**, Macquarie University, Master of Business Analytics
+
 **Wendy Nguyen**, Macquarie University, Master of Business Analytics
 
+### Challenge Achivements
 📍 Ranked 67th globally out of 10,000+ participants
+
 🇦🇺 Top 7 in Australia
 
 --------
 ## Project Overview
 
 Urban Heat Islands (UHIs) represent a critical climate issue in urban centers. Our solution aims to predict UHI intensity across NYC using multi-source data including:
-	•	Ground-traverse temperature data
-	•	Sentinel-2 and Landsat-8 satellite imagery
-	•	Building footprint data
-	•	Local weather station measurements
+
+- Ground-traverse temperature data
+
+- Sentinel-2 and Landsat-8 satellite imagery
+
+- Building footprint data
+
+- Local weather station measurements
 
 Through careful data preprocessing, feature engineering, and model tuning, we developed an end-to-end regression pipeline capable of predicting UHI index at meter-scale precision.
 
@@ -28,21 +37,21 @@ Through careful data preprocessing, feature engineering, and model tuning, we de
 ## Workflow Summary
 
 I. Data Acquisition & Processing
-	•	Extract and merge Sentinel-2, Landsat LST, KML-based building data, and weather data
-	•	Compute grid-based building coverage and building count
-    •	Apply focal buffer technique to reflect real-world surrounding effects
+- Extract and merge Sentinel-2, Landsat LST, KML-based building data, and weather data
+- Compute grid-based building coverage and building count
+- Apply focal buffer technique to reflect real-world surrounding effects
 
 II. Feature Engineering
-	•	Create vegetation indices (e.g., NDVI), normalize timestamps, derive satellite-derived features
-	•	Integrate spatial features from KML overlays and building polygons
+- Create vegetation indices (e.g., NDVI), normalize timestamps, derive satellite-derived features
+- Integrate spatial features from KML overlays and building polygons
 
 III. Model Development
-	•	Tune and train XGBoost regressors using SHAP-driven feature selection
-	•	Evaluate using R², MAE, and RMSE on held-out data
+- Tune and train XGBoost regressors using SHAP-driven feature selection
+- Evaluate using R², MAE, and RMSE on held-out data
 
 IV. Final Prediction
-	•	Predict UHI index on test set with top 50 most important features
-	•	Generate final CSV for leaderboard submission
+- Predict UHI index on test set with top 50 most important features
+- Generate final CSV for leaderboard submission
 
 --------
 ## Directory
@@ -98,5 +107,3 @@ IV. Final Prediction
 > *“The success of this project came not from exotic modeling techniques, but from rigorous data preprocessing and feature engineering. Proper handling of spatial features and grid-cell overlays using building data proved crucial to improving model performance.”*
 — Team Vietnamese
 
-## Contact
-For questions about this repository or collaboration opportunities, please reach out via GitHub or Mason Phung’s LinkedIn.
