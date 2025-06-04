@@ -2,6 +2,7 @@
 <a target="_blank" href="https://challenge.ey.com/2025">
     <img src="docs/marketing-2025-img.jpg" />
 </a>
+
 > This project was developed as part of the EY Open Science AI & Data Challenge 2025, where global teams worked to design machine learning models that predict the Urban Heat Island (UHI) effect across New York City.
 
 --------
