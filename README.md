@@ -8,7 +8,7 @@
 --------
 ## **Cooling Urban Heat Islands** -  Team Vietnamese
 
-**Mason Phung**, Macquarie University, Master of Data Science
+**Mason Phung** (Leader), Macquarie University, Master of Data Science
 
 **Claire Dinh**, Macquarie University, Master of Business Analytics
 
@@ -40,11 +40,11 @@ Through careful data preprocessing, feature engineering, and model tuning, we de
 I. Data Acquisition & Processing
 - Extract and merge Sentinel-2, Landsat LST, KML-based building data, and weather data
 - Compute grid-based building coverage and building count
-- Apply focal buffer technique to reflect real-world surrounding effects
 
 II. Feature Engineering
 - Create vegetation indices (e.g., NDVI), normalize timestamps, derive satellite-derived features
 - Integrate spatial features from KML overlays and building polygons
+- Apply focal buffer technique to reflect real-world surrounding effects
 
 III. Model Development
 - Tune and train XGBoost regressors using SHAP-driven feature selection
