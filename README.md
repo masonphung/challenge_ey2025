@@ -108,3 +108,5 @@ IV. Final Prediction
 > *“The success of this project came not from exotic modeling techniques, but from rigorous data preprocessing and feature engineering. Proper handling of spatial features and grid-cell overlays using building data proved crucial to improving model performance.”*
 — Team Vietnamese
 
+## Discussion
+Feel free to reach out to Mason through [LinkedIn](https://www.linkedin.com/in/masonphung/) or [GitHub](https://www.github.com/masonphung).
