@@ -32,7 +32,7 @@ Urban Heat Islands (UHIs) represent a critical climate issue in urban centers. O
 
 - Local weather station measurements
 
-Through careful data preprocessing, feature engineering, and model tuning, we developed an end-to-end regression pipeline capable of predicting UHI index at meter-scale precision.
+Through careful data preprocessing, feature engineering, and model tuning, we developed an regression model of predicting UHI index at meter-scale precision.
 
 --------
 ## Workflow Summary
