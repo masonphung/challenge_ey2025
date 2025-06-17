@@ -44,7 +44,7 @@ I. Data Acquisition & Processing
 II. Feature Engineering
 - Create vegetation indices (e.g., NDVI), normalize timestamps, derive satellite-derived features
 - Integrate spatial features from KML overlays and building polygons
-- Apply focal buffer technique to reflect real-world surrounding effects
+- Apply focal buffer technique to reflect real-world surrounding effects (created based on Shandas et al, 2019)
 
 III. Model Development
 - Tune and train XGBoost regressors using SHAP-driven feature selection
