@@ -57,6 +57,8 @@ IV. Final Prediction
 --------
 ## Directory
 
+**Open `notebooks/proj.ipynb` for full project workflow**
+
 ```
 ├── README.md          <- Project README
 ├── data
