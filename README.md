@@ -22,7 +22,12 @@
 --------
 ## Project Overview
 
-Urban Heat Islands (UHIs) represent a critical climate issue in urban centers. Our solution aims to predict UHI intensity across NYC using multi-source data including:
+Urban Heat Islands (UHIs) represent a critical climate issue in urban centers. Knowing UHI is similar to having a "thermal map" to monitor a city's health & efficiency, which can be applied in many cases:
+- **Urban Planning & Infrastructure**: Detect "heat traps" where concrete and asphalt are trapping too much heat, which helps cities plan their parks for coooling, decide construction materials or design buildings to maximize airflow/cooling.
+-  **Public Health & Equity**: Research shows that lower-income areas often have higher UHI values due to less greenery and higher building density. Knowing UHI, during heatwaves, health services use UHI maps to prioritize wellness checks and deploy mobile cooling stations to the hottest neighborhoods. Similarly, cities can use UHI mapping to determine area that needs additional health support due to heat.
+-  **Energy Management**: Utilities use UHI data to predict "peak load" times for air conditioning
+
+Our solution aims to predict UHI intensity across NYC using multi-source data including:
 
 - Ground-traverse temperature data
 
@@ -104,6 +109,8 @@ IV. Final Prediction
 | Local Train Set      | 0.9990   | 0.0004  | 0.0000  |
 | Local Test Set       | 0.9610   | 0.0023  | 0.0000  |
 | Competition Test Set | 0.9680   | —       | —       |
+
+The model provides a solid Machine Learning framework that can be applied in any cities around the world to predict its current UHI index. Knowing UHI index, city councils & climate experts can understand their city's current "hot spots" and provide necessary plans & actions to improve pedestrians' life.
 
 ## Key Takeaways
 
